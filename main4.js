@@ -181,6 +181,32 @@ const Header = () => (
 )
 
 // APPLICATION =========================================================================
+const loadState = () => {
+  try {
+    const serialized = localStorage.getItem('state')
+    if (serialized == null) { return undefined }
+    return JSON.parse(serialized)
+  } catch (err) {
+    return undefined
+  }
+}
+
+const saveState = (state) => {
+  try {
+    const serialized = JSON.stringify(state)
+    localStorage.setItem('state', serialized)
+  } catch (err) {
+    // Ignore
+  }
+}
+
+const store = createStore(todoApp, loadState())
+store.subscribe(() => {
+  saveState({
+    todos: store.getState().todos
+  })
+})
+
 const ToDoApp = () => (
   <div>
     <Header />
@@ -190,7 +216,7 @@ const ToDoApp = () => (
 )
 
 ReactDOM.render(
-  <Provider store={createStore(todoApp)} >
+  <Provider store={store} >
     <ToDoApp />
   </Provider>,
   document.getElementById('root')
