@@ -52,26 +52,50 @@ const todoApp = combineReducers({
 
 const { createStore } = Redux;
 const store = createStore(todoApp);
+const { Component } = React;
 
-const SelectFilter = ({
-  filter,
-  currentFilter,
-  children
-}) => {
-  if (filter === currentFilter) {
+const Link = ({ children, active, onClick }) => {
+  if (active) {
     return <span>{children}</span>
   }
   return (
     <a href="#"
        onClick={(e) => {
          e.preventDefault()
-         store.dispatch({
-           type: 'SET_VISIBILITY',
-           filter: filter,
-         })}} >
+         onClick()
+         }} >
       {children}
     </a>
   )
+}
+
+class SelectFilter extends Component {
+  componentDidMount() {
+    this.unsubscribe = store.subscribe(() => {
+      this.forceUpdate()
+    })
+  }
+
+  componentDidUnmount() {
+    this.unsubscribe()
+  }
+
+  render() {
+    const { filter, children } = this.props;
+    const state = store.getState();
+
+    return (
+      <Link
+        active={ filter == state.visibility }
+        onClick={() => {
+           store.dispatch({
+             type: 'SET_VISIBILITY',
+             filter: filter,
+           })}} >
+        {children}
+      </Link>
+    )
+  }
 }
 
 const getVisibleTodos = (todos, filter) => {
@@ -124,31 +148,26 @@ const AddTodo = ({ onClick }) => {
   )
 }
 
-const Header = ({ visibility }) => (
+const Header = () => (
   <p>
     Show: 
     {' '}
     <SelectFilter
-      filter="SHOW_ALL"
-      currentFilter={visibility} >
+      filter="SHOW_ALL">
       All
     </SelectFilter>
     {' '}
     <SelectFilter
-      filter="SHOW_COMPLETED"
-      currentFilter={visibility} >
+      filter="SHOW_COMPLETED">
       Completed
     </SelectFilter>
     {' '}
     <SelectFilter
-      filter="SHOW_ACTIVE"
-      currentFilter={visibility} >
+      filter="SHOW_ACTIVE">
       Active
     </SelectFilter>
   </p>
 )
-
-const { Component } = React;
 
 let nextTodoId = 0
 const ToDoApp = ({ todos, visibility }) => (
