@@ -96,67 +96,76 @@ const Todo = ({todo, onClick}) => {
   )
 }
 
-const TodoList = ({todos, onTodoClick}) => {
+const TodoList = ({todos, onClick}) => {
   return (
     <ul>
       { todos.map(t => (
           <Todo key={t.id} 
                 todo={t}
-                onClick={() => onTodoClick(t.id)} 
+                onClick={() => onClick(t.id)} 
           />))
       } 
     </ul>
   )
 }
 
+const AddTodo = ({ onClick }) => {
+  let input;
+  return (
+    <div>
+      <input ref={node => { input = node} } />
+      <button onClick={() => {
+        onClick(input.value)
+        input.value = ''
+        }}>
+        +
+      </button>
+    </div>
+  )
+}
+
+const Header = ({ visibility }) => (
+  <p>
+    Show: 
+    {' '}
+    <SelectFilter
+      filter="SHOW_ALL"
+      currentFilter={visibility} >
+      All
+    </SelectFilter>
+    {' '}
+    <SelectFilter
+      filter="SHOW_COMPLETED"
+      currentFilter={visibility} >
+      Completed
+    </SelectFilter>
+    {' '}
+    <SelectFilter
+      filter="SHOW_ACTIVE"
+      currentFilter={visibility} >
+      Active
+    </SelectFilter>
+  </p>
+)
+
 const { Component } = React;
 
 let nextTodoId = 0
-class ToDoApp extends Component {
-  render() {
-    const { todos, visibility } = this.props
-    const currentTodos = getVisibleTodos(todos, visibility)
-    return (
-      <div>
-        <p>
-          Show: 
-          {' '}
-          <SelectFilter
-            filter="SHOW_ALL"
-            currentFilter={visibility} >
-            All
-          </SelectFilter>
-          {' '}
-          <SelectFilter
-            filter="SHOW_COMPLETED"
-            currentFilter={visibility} >
-            Completed
-          </SelectFilter>
-          {' '}
-          <SelectFilter
-            filter="SHOW_ACTIVE"
-            currentFilter={visibility} >
-            Active
-          </SelectFilter>
-        </p>
-        <input ref={node => { this.input = node} } />
-        <button onClick={() => {
-          store.dispatch({ 
-            type: 'ADD_TODO',
-            text: this.input.value,
-            id: nextTodoId++
-          })
-          this.input.value = ''
-          }}>
-          +
-        </button>
-        <TodoList 
-          todos={currentTodos}
-          onTodoClick={(i) => store.dispatch({ type: 'TOGGLE_TODO', id: i })} />
-      </div>
-    )
-  }
-}
+const ToDoApp = ({ todos, visibility }) => (
+  <div>
+    <Header visibility={visibility} />
+    <AddTodo 
+      onClick={text => store.dispatch({ 
+          type: 'ADD_TODO',
+          text: text,
+          id: nextTodoId++
+        })
+      } />
+    <TodoList 
+      todos={getVisibleTodos(todos, visibility)}
+      onClick={(i) => store.dispatch({ type: 'TOGGLE_TODO', id: i })} />
+  </div>
+)
 
 const render = () => {
   ReactDOM.render(
